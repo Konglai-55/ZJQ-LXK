@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useLock } from '@/hooks/use-lock'
 import { cn } from '@/lib/utils'
 
-export function LockSettings() {
+export function LockSettings({ compact = false }: { compact?: boolean }) {
   const { status, setPassword, removePassword } = useLock()
   const [open, setOpen] = useState(false)
   const [password, setPw] = useState('')
@@ -47,15 +47,17 @@ export function LockSettings() {
   return (
     <Dialog.Root open={open} onOpenChange={reset}>
       <Dialog.Trigger
+        aria-label={locked ? '日记已上锁，修改密码' : '给日记上锁'}
         className={cn(
-          'flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm transition',
+          'flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full text-sm transition',
+          compact ? 'size-10 shrink-0' : 'border px-3 py-1.5',
           locked
             ? 'border-primary bg-primary text-primary-foreground'
             : 'border-dashed border-foreground/30 hover:border-primary hover:text-primary',
         )}
       >
         {locked ? <Lock className="size-3.5" aria-hidden="true" /> : <LockOpen className="size-3.5" aria-hidden="true" />}
-        {locked ? '已上锁' : '给日记上锁'}
+        {!compact && <span>{locked ? '已上锁' : '给日记上锁'}</span>}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Backdrop forceRender className="fixed inset-0 z-[60] bg-foreground/40 transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />

@@ -45,10 +45,10 @@ export function DiaryDialog({ me, date, todayKey, entries, onChangeDate, onClose
     >
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-[2px] transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-        <Dialog.Popup className="fixed inset-x-0 bottom-0 top-4 z-50 flex flex-col overflow-hidden rounded-t-3xl bg-background outline-none transition data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0 md:inset-x-6 md:bottom-6 md:top-6 md:mx-auto md:max-w-2xl md:rounded-3xl">
+        <Dialog.Popup className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-paper pt-[env(safe-area-inset-top)] outline-none transition data-[ending-style]:translate-y-6 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-6 data-[starting-style]:opacity-0 md:inset-6 md:mx-auto md:max-w-2xl md:rounded-3xl">
           {date && formatted && (
             <>
-              <header className="flex items-center justify-between gap-2 border-b border-dashed px-4 py-3 sm:px-6">
+              <header className="flex shrink-0 items-center justify-between gap-1 border-b border-dashed px-2 py-1">
                 <button
                   type="button"
                   onClick={() => onChangeDate(shiftDateKey(date, -1))}
@@ -57,9 +57,9 @@ export function DiaryDialog({ me, date, todayKey, entries, onChangeDate, onClose
                 >
                   <ChevronLeft className="size-5" aria-hidden="true" />
                 </button>
-                <div className="flex flex-col items-center">
-                  <Dialog.Title className="font-hand text-2xl leading-tight sm:text-3xl">{formatted.full}</Dialog.Title>
-                  <Dialog.Description className="text-xs tracking-widest text-muted-foreground">
+                <div className="flex min-w-0 flex-1 items-baseline justify-center gap-2">
+                  <Dialog.Title className="whitespace-nowrap font-hand text-xl leading-tight">{formatted.full}</Dialog.Title>
+                  <Dialog.Description className="sr-only">
                     {[formatted.weekday, ...getSpecialDays(date).map((s) => s.detail)].join(' · ')}
                   </Dialog.Description>
                 </div>
@@ -82,10 +82,8 @@ export function DiaryDialog({ me, date, todayKey, entries, onChangeDate, onClose
                 </div>
               </header>
 
-              <DayNotes key={date} me={me} date={date} />
-
-              <div className="flex justify-center px-4 pt-4">
-                <div role="tablist" aria-label="切换日记本" className="flex rounded-full bg-secondary p-1">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-dashed px-3 py-1">
+                <div role="tablist" aria-label="切换日记本" className="flex min-w-0 items-center gap-1">
                   {tabs.map((t) => (
                     <button
                       key={t.id}
@@ -94,7 +92,7 @@ export function DiaryDialog({ me, date, todayKey, entries, onChangeDate, onClose
                       aria-selected={viewing === t.id}
                       onClick={() => setViewing(t.id)}
                       className={cn(
-                        'flex items-center gap-1.5 rounded-full px-5 py-1.5 font-hand text-xl transition',
+                        'flex min-h-10 items-center gap-1 rounded-full px-3 text-sm transition',
                         viewing === t.id ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground',
                       )}
                     >
@@ -105,9 +103,10 @@ export function DiaryDialog({ me, date, todayKey, entries, onChangeDate, onClose
                     </button>
                   ))}
                 </div>
+                <DayNotes key={date} me={me} date={date} compact />
               </div>
 
-              <div role="tabpanel" className="flex-1 overflow-y-auto px-4 py-6 sm:px-8">
+              <div role="tabpanel" className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
                 <DiaryPage
                   key={`${viewing}-${date}`}
                   me={me}

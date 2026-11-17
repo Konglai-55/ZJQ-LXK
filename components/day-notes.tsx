@@ -10,7 +10,7 @@ import { getNoteKind } from '@/lib/notes'
 import { PARTNERS, otherPartner, type PartnerId } from '@/lib/partners'
 import { cn } from '@/lib/utils'
 
-export function DayNotes({ me, date }: { me: PartnerId; date: string }) {
+export function DayNotes({ me, date, compact = false }: { me: PartnerId; date: string; compact?: boolean }) {
   const partner = otherPartner(me)
   const notes = useNotes(date.slice(0, 7))
   const received = notes.get(noteId(partner, date))
@@ -20,32 +20,35 @@ export function DayNotes({ me, date }: { me: PartnerId; date: string }) {
   const unread = Boolean(received && !received.readAt)
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-4 pt-3">
+    <div className={compact ? 'flex shrink-0 items-center gap-1' : 'flex flex-wrap items-center gap-2 px-4 pt-3'}>
       {received && (
         <button
           type="button"
+          aria-label={`${PARTNERS[partner].name}给你留了${getNoteKind(received.kind).label}${unread ? '，未读' : ''}`}
           onClick={() => {
             setViewing(true)
             if (unread) markNoteRead(date)
           }}
           className={cn(
-            'relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition',
+            'relative flex items-center justify-center gap-1.5 rounded-full border text-sm transition',
+            compact ? 'size-10' : 'px-3 py-1.5',
             unread ? 'border-primary bg-primary text-primary-foreground' : 'border-primary/40 text-primary',
           )}
         >
           <NoteKindIcon kind={received.kind} className="size-4" />
-          {PARTNERS[partner].name}给你留了{getNoteKind(received.kind).label}
-          {unread && <span aria-hidden="true" className="size-1.5 rounded-full bg-primary-foreground" />}
+          {!compact && <span>{PARTNERS[partner].name}给你留了{getNoteKind(received.kind).label}</span>}
+          {unread && <span aria-hidden="true" className={compact ? 'absolute right-1 top-1 size-1.5 rounded-full bg-primary-foreground' : 'size-1.5 rounded-full bg-primary-foreground'} />}
         </button>
       )}
 
       <button
         type="button"
+        aria-label={sent ? '改一改我留的' : `给${PARTNERS[partner].name}留张纸条`}
         onClick={() => setComposing(true)}
-        className="flex items-center gap-1.5 rounded-full border border-dashed border-foreground/30 px-3 py-1.5 text-sm transition hover:border-primary hover:text-primary"
+        className={cn('flex items-center justify-center gap-1.5 rounded-full border border-dashed border-foreground/30 text-sm transition hover:border-primary hover:text-primary', compact ? 'size-10' : 'px-3 py-1.5')}
       >
         {sent ? <NoteKindIcon kind={sent.kind} className="size-4" /> : <Pencil aria-hidden="true" className="size-4" />}
-        {sent ? '改一改我留的' : `给${PARTNERS[partner].name}留张纸条`}
+        {!compact && <span>{sent ? '改一改我留的' : `给${PARTNERS[partner].name}留张纸条`}</span>}
       </button>
 
       <NoteViewer note={received ?? null} open={viewing} onOpenChange={setViewing} />

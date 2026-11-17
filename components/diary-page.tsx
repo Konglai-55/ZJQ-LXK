@@ -29,20 +29,13 @@ export function DiaryPage({ me, owner, date, entry }: Props) {
   const mood = getMood(entry?.mood)
 
   return (
-    <article className="paper-grain paper-shadow relative flex flex-col rounded-sm bg-paper">
-      <div aria-hidden="true" className="absolute -top-2.5 left-10 h-6 w-20 -rotate-3 bg-tape" />
-      <header className="flex items-center justify-between gap-3 px-5 pb-2 pt-7 sm:px-6">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h3 className="whitespace-nowrap font-hand text-2xl leading-tight sm:text-3xl">
-            {person.name}
-            <span className="text-muted-foreground">的日记</span>
-          </h3>
-          <span className="text-xs text-muted-foreground">
-            {mood ? `今天的心情：${mood.label}` : editable ? '先选一个今天的心情吧' : '还没有选择心情'}
-          </span>
-        </div>
-        {mood && <MoodFace mood={mood.id} shape={person.shape} className="size-12 shrink-0 rotate-6 sm:size-14" />}
-      </header>
+    <article className="paper-grain relative flex min-h-full flex-col bg-paper">
+      {!editable && mood && (
+        <p className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
+          <MoodFace mood={mood.id} shape={person.shape} className="size-6" />
+          今天的心情：{mood.label}
+        </p>
+      )}
 
       {editable ? (
         <EditableBody me={me} date={date} entry={entry} />
@@ -72,9 +65,6 @@ function PartnerBody({ entry, name }: { entry?: Entry; name: string }) {
 
   return (
     <div className="flex flex-col pb-6">
-      {entry.images.length > 0 && (
-        <p className="border-y border-dashed px-5 py-2 text-xs text-muted-foreground">点邮票可以看大图</p>
-      )}
       <DiaryCanvas
         text={entry.content}
         images={entry.images}
@@ -93,6 +83,7 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const moodRef = useRef<HTMLDetailsElement>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [viewing, setViewing] = useState<string | null>(null)
 
@@ -101,6 +92,7 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
   const dirty = draft !== null && draft !== saved
   const images = entry?.images ?? []
   const selectedImage = images.find((i) => i.p === selected) ?? null
+  const mood = getMood(entry?.mood)
 
   function resizeSelected(delta: number) {
     if (!selectedImage) return
@@ -153,17 +145,25 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
 
   return (
     <div className="flex flex-col pb-6">
-      <div className="px-3 pb-2 sm:px-4">
-        <MoodPicker
-          size="sm"
-          shape={PARTNERS[me].shape}
-          value={entry?.mood ?? null}
-          onChange={(mood) => saveEntry(me, date, { mood })}
-        />
-      </div>
-
-      <div className="sticky top-0 z-20 flex flex-col gap-1 border-y border-dashed bg-paper/95 px-4 py-2.5 backdrop-blur-sm sm:px-6">
-        <div className="flex items-center gap-2">
+      <div className="sticky top-0 z-20 flex flex-col border-b border-dashed bg-paper/95 px-3 py-1 backdrop-blur-sm">
+        <div className="flex min-h-10 items-center gap-1">
+          <details ref={moodRef} className="relative shrink-0">
+            <summary aria-label="选择心情" className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 rounded-full px-2 text-sm hover:bg-secondary [&::-webkit-details-marker]:hidden">
+              <MoodFace mood={mood?.id} shape={PARTNERS[me].shape} className="size-6" />
+              {mood?.label ?? '心情'}
+            </summary>
+            <div className="paper-shadow absolute left-0 top-full z-30 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border bg-paper p-2">
+              <MoodPicker
+                size="sm"
+                shape={PARTNERS[me].shape}
+                value={entry?.mood ?? null}
+                onChange={(next) => {
+                  if (moodRef.current) moodRef.current.open = false
+                  saveEntry(me, date, { mood: next })
+                }}
+              />
+            </div>
+          </details>
           <input
             ref={fileRef}
             type="file"
@@ -176,7 +176,7 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
           />
           <label
             htmlFor={`photo-${date}`}
-            className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border border-dashed border-foreground/30 px-3 py-1.5 text-sm transition hover:border-primary hover:text-primary"
+            className="flex min-h-10 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-2 text-sm transition hover:bg-secondary"
           >
             {uploading ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -185,7 +185,7 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
             )}
             {uploading ? '贴邮票中…' : '贴邮票'}
           </label>
-          <LockSettings />
+          <LockSettings compact />
           <p aria-live="polite" className="ml-auto flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground">
             {status === 'saving' && '保存中…'}
             {status === 'saved' && !dirty && (
@@ -204,7 +204,7 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
           </p>
         )}
         {selectedImage ? (
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pb-1 pt-1">
             <p className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">双指捏合也能缩放</p>
             <StampTool label="缩小" onClick={() => resizeSelected(-0.1)} disabled={selectedImage.w <= MIN_STAMP_W}>
               <Minus className="size-4" aria-hidden="true" />
@@ -226,11 +226,7 @@ function EditableBody({ me, date, entry }: { me: PartnerId; date: string; entry?
               好了
             </button>
           </div>
-        ) : (
-          images.length > 0 && (
-            <p className="text-xs text-muted-foreground">按住邮票拖动换位置，点一下可以缩放</p>
-          )
-        )}
+        ) : null}
       </div>
 
       <DiaryCanvas

@@ -5,8 +5,8 @@ import { StampPhoto, stampSize } from '@/components/stamp-photo'
 import { MAX_STAMP_W, MIN_STAMP_W, type DiaryImage } from '@/lib/diary-images'
 import { caretAt, caretVertical, layoutText, type Rect } from '@/lib/text-layout'
 
-const PAD_L = 48
-const PAD_R = 20
+const PAD_L = 32
+const PAD_R = 16
 const LH = 36
 const GAP = 12
 const MIN_LINES = 12
@@ -64,8 +64,9 @@ export function DiaryCanvas({
   const [fontVersion, setFontVersion] = useState(0)
   const [sel, setSel] = useState({ start: text.length, end: text.length })
   const [focused, setFocused] = useState(false)
+  const [selectingText, setSelectingText] = useState(false)
   const [dragImages, setDragImages] = useState<DiaryImage[] | null>(null)
-  const pointer = useRef<{ anchor: number; x: number; y: number; type: string } | null>(null)
+  const pointer = useRef<{ x: number; y: number } | null>(null)
 
   useLayoutEffect(() => {
     const el = containerRef.current
@@ -190,13 +191,16 @@ export function DiaryCanvas({
   const syncSelection = useCallback(() => {
     const ta = textareaRef.current
     if (ta) setSel({ start: ta.selectionStart, end: ta.selectionEnd })
+    const selection = window.getSelection()
+    const selecting = Boolean(selection && !selection.isCollapsed && containerRef.current?.contains(selection.anchorNode))
+    setSelectingText(selecting)
+    if (selecting && document.activeElement === ta) ta?.blur()
   }, [])
 
   useEffect(() => {
-    if (!focused) return
     document.addEventListener('selectionchange', syncSelection)
     return () => document.removeEventListener('selectionchange', syncSelection)
-  }, [focused, syncSelection])
+  }, [syncSelection])
 
   function indexFromEvent(e: React.MouseEvent) {
     if (!layout) return 0
@@ -233,25 +237,15 @@ export function DiaryCanvas({
 
   function onAreaPointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (!editable || e.button !== 0) return
-    pointer.current = { anchor: 0, x: e.clientX, y: e.clientY, type: e.pointerType }
-    if (e.pointerType === 'mouse') {
-      if (selectedStamp) onBackgroundTap?.()
-      e.preventDefault()
-      e.currentTarget.setPointerCapture(e.pointerId)
-      pointer.current.anchor = tapAt(e)
-    }
-  }
-
-  function onAreaPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    const p = pointer.current
-    if (!p || p.type !== 'mouse' || !(e.buttons & 1)) return
-    placeCaret(p.anchor, indexFromEvent(e))
+    pointer.current = { x: e.clientX, y: e.clientY }
   }
 
   function onAreaClick(e: React.MouseEvent<HTMLDivElement>) {
     const p = pointer.current
     pointer.current = null
-    if (!p || p.type === 'mouse' || pinching.current) return
+    if (!p || pinching.current) return
+    const selection = window.getSelection()
+    if (selection && !selection.isCollapsed && e.currentTarget.contains(selection.anchorNode)) return
     if (Math.hypot(e.clientX - p.x, e.clientY - p.y) >= 10) return
     if (selectedStamp) {
       onBackgroundTap?.()
@@ -308,14 +302,13 @@ export function DiaryCanvas({
   return (
     <div
       ref={containerRef}
-      className="paper-lined relative font-hand text-xl sm:text-2xl"
+      className="diary-paper paper-lined relative min-h-[calc(100dvh-9.25rem)] font-hand text-xl sm:text-2xl"
       style={{ height }}
     >
       <div
-        className={editable ? 'absolute inset-y-0 cursor-text select-none' : 'absolute inset-y-0'}
+        className={editable ? 'absolute inset-y-0 cursor-text' : 'absolute inset-y-0'}
         style={{ left: PAD_L, width: areaW }}
         onPointerDown={onAreaPointerDown}
-        onPointerMove={onAreaPointerMove}
         onPointerCancel={() => (pointer.current = null)}
         onClick={onAreaClick}
       >
@@ -328,14 +321,14 @@ export function DiaryCanvas({
           />
         ))}
 
-        <div aria-hidden={editable ? true : undefined} className="text-foreground">
-          {layout?.runs.map((run) => (
+        <div aria-hidden={editable ? true : undefined} className="diary-text select-text text-foreground">
+          {layout?.runs.map((run, index) => (
             <span
               key={`${run.start}-${run.y}`}
               className="absolute whitespace-pre"
               style={{ left: run.x, top: run.y, lineHeight: `${LH}px`, fontKerning: 'none' }}
             >
-              {run.text}
+              {run.text}{text.slice(run.start + run.text.length, layout.runs[index + 1]?.start ?? text.length)}
             </span>
           ))}
         </div>
@@ -351,7 +344,7 @@ export function DiaryCanvas({
           </span>
         ))}
 
-        {editable && focused && caret && sel.start === sel.end && (
+        {editable && focused && !selectingText && caret && sel.start === sel.end && (
           <span
             ref={caretRef}
             aria-hidden="true"
