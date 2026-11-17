@@ -34,8 +34,10 @@ export function StampViewer({ pathname, onClose }: { pathname: string | null; on
       <Dialog.Portal>
         <Dialog.Backdrop
           forceRender
-          className="fixed inset-0 z-[80] bg-foreground/70 backdrop-blur-sm transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0"
-        />
+          className="photo-viewer-backdrop fixed inset-0 z-[80] transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0"
+        >
+          {pathname && <StorageImage pathname={pathname} alt="" aria-hidden="true" />}
+        </Dialog.Backdrop>
         <Dialog.Popup
           onClick={onClose}
           className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-5 outline-none transition data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0"
@@ -50,7 +52,7 @@ export function StampViewer({ pathname, onClose }: { pathname: string | null; on
               </div>
             </div>
           )}
-          <p className="font-hand text-xl text-background">轻点任意处收起</p>
+          <p className="font-hand text-xl text-foreground">轻点任意处收起</p>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

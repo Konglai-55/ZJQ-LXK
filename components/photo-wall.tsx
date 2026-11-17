@@ -85,7 +85,7 @@ function WallContent({ me }: { me: PartnerId }) {
       </div>}
 
       <PhotoStory photo={selected} onClose={() => setSelected(null)}>
-        {selected?.author === me && <div className="mt-8 flex justify-center gap-4 border-t border-background/20 pt-4">
+        {selected?.author === me && <div className="mt-8 flex justify-center gap-4 border-t border-foreground/15 pt-4">
           <button type="button" disabled={deleting} onClick={() => { setEditor({ photo: selected }); setSelected(null) }} className="flex min-h-11 items-center gap-2 px-2 text-sm"><Pencil className="size-4" />编辑故事</button>
           <button type="button" disabled={deleting} onClick={() => remove(selected)} className="flex min-h-11 items-center gap-2 px-2 text-sm opacity-70"><Trash2 className="size-4" />{deleting ? '移除中…' : '取下合照'}</button>
         </div>}
@@ -102,12 +102,14 @@ function PhotoStory({ photo, onClose, children }: { photo: SharedPhoto | null; o
   return (
     <Dialog.Root open={photo !== null} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Backdrop forceRender className="fixed inset-0 z-[60] bg-[#211d1b]/85 backdrop-blur-xl" />
-        <Dialog.Popup className="fixed inset-0 z-[60] overflow-y-auto text-[#fffdf7] outline-none">
+        <Dialog.Backdrop forceRender className="photo-viewer-backdrop fixed inset-0 z-[60]">
+          {photo && <StorageImage pathname={photo.pathname} alt="" aria-hidden="true" />}
+        </Dialog.Backdrop>
+        <Dialog.Popup className="fixed inset-0 z-[60] overflow-y-auto text-foreground outline-none">
           {photo && <div className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
             <div className="mb-4 flex shrink-0 items-center justify-between gap-4">
               <span className="font-serif text-sm opacity-70">{photo.date.replaceAll('-', ' / ')}</span>
-              <Dialog.Close aria-label="收起照片" className="flex size-11 items-center justify-center rounded-full bg-white/10"><X className="size-5" /></Dialog.Close>
+              <Dialog.Close aria-label="收起照片" className="flex size-11 items-center justify-center rounded-full border border-foreground/10 bg-background/50"><X className="size-5" /></Dialog.Close>
             </div>
             <div className="photo-perspective px-3 py-3">
               <button type="button" aria-label="轻点照片切换立体角度" data-turned={turned} onClick={() => setTurned((value) => !value)}
@@ -128,7 +130,7 @@ function PhotoStory({ photo, onClose, children }: { photo: SharedPhoto | null; o
             <div className="mt-8 font-serif">
               <Dialog.Title className="break-words text-2xl leading-relaxed">{photo.title || '一起的瞬间'}</Dialog.Title>
               <Dialog.Description className="sr-only">这张合照背后的故事</Dialog.Description>
-              <p className="mt-5 whitespace-pre-wrap break-words text-[18px] leading-[2] text-[#eee5db]">{photo.story || '这一页故事，等我们慢慢写。'}</p>
+              <p className="mt-5 whitespace-pre-wrap break-words text-[18px] leading-[2]">{photo.story || '这一页故事，等我们慢慢写。'}</p>
               <p className="mt-6 text-xs opacity-50">{PARTNERS[photo.author].name}留下的瞬间</p>
             </div>
             {children}
