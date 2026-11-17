@@ -3,9 +3,9 @@
 只使用 Rains3 对象存储，不需要 SQL 数据库。配置 `.env.local`（参考 `.env.example`）后运行：
 
 ```powershell
-pnpm install
-pnpm storage:setup
-pnpm dev
+npm ci
+npm run storage:setup
+npm run dev
 ```
 
 `BETTER_AUTH_SECRET` 是服务端签名登录 Cookie 用的随机长字符串，部署后保持不变。
@@ -29,10 +29,10 @@ S3 密钥只放在服务端环境变量里，不使用 `NEXT_PUBLIC_` 前缀。
 ## 检查
 
 ```powershell
-pnpm check:photos
-pnpm check:data
-pnpm exec tsc --noEmit --incremental false
-pnpm build
+npm run check:photos
+npm run check:data
+npx tsc --noEmit --incremental false
+npm run build
 ```
 
 无需建表或运行迁移脚本。记录在第一次保存时自动创建。临时测试会使用独立键，不能用测试数据覆盖真实记录。
