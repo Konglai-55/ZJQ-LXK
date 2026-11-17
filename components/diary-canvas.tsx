@@ -198,7 +198,7 @@ export function DiaryCanvas({
     return () => document.removeEventListener('selectionchange', syncSelection)
   }, [focused, syncSelection])
 
-  function indexFromEvent(e: React.PointerEvent) {
+  function indexFromEvent(e: React.MouseEvent) {
     if (!layout) return 0
     const rect = e.currentTarget.getBoundingClientRect()
     return caretAt(layout, e.clientX - rect.left, e.clientY - rect.top, LH)
@@ -213,7 +213,7 @@ export function DiaryCanvas({
   }
 
   /** Tapping an empty line below the text pads it with line breaks so writing starts on that line. */
-  function tapAt(e: React.PointerEvent<HTMLDivElement>) {
+  function tapAt(e: React.MouseEvent<HTMLDivElement>) {
     if (!layout) return 0
     const rect = e.currentTarget.getBoundingClientRect()
     const tappedLine = Math.floor((e.clientY - rect.top) / LH)
@@ -248,7 +248,7 @@ export function DiaryCanvas({
     placeCaret(p.anchor, indexFromEvent(e))
   }
 
-  function onAreaPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+  function onAreaClick(e: React.MouseEvent<HTMLDivElement>) {
     const p = pointer.current
     pointer.current = null
     if (!p || p.type === 'mouse' || pinching.current) return
@@ -257,6 +257,7 @@ export function DiaryCanvas({
       onBackgroundTap?.()
       return
     }
+    // Focus after the compatibility mouse events, which otherwise blur the textarea on iOS.
     tapAt(e)
   }
 
@@ -315,7 +316,8 @@ export function DiaryCanvas({
         style={{ left: PAD_L, width: areaW }}
         onPointerDown={onAreaPointerDown}
         onPointerMove={onAreaPointerMove}
-        onPointerUp={onAreaPointerUp}
+        onPointerCancel={() => (pointer.current = null)}
+        onClick={onAreaClick}
       >
         {selectionRects.map((r, i) => (
           <span
