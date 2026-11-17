@@ -1,0 +1,9 @@
+{
+  "name": "zjq-lxk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"throw new Error('Configure the verified Linux release before first deployment')\"",
+    "start": "node -e \"throw new Error('Linux release not prepared')\""
+  }
+}
