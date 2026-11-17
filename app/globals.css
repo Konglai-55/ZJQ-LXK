@@ -1,0 +1,163 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-noto-serif-sc), 'Songti SC', serif;
+  --font-serif: var(--font-noto-serif-sc), 'Songti SC', serif;
+  --font-hand: var(--font-ma-shan-zheng), 'Kaiti SC', cursive;
+
+  --color-paper: var(--paper);
+  --color-paper-line: var(--paper-line);
+  --color-paper-margin: var(--paper-margin);
+  --color-tape: var(--tape);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+  --background: #fbfaf6;
+  --foreground: #2e2925;
+  --card: #fffdf7;
+  --card-foreground: #2e2925;
+  --popover: #fffdf7;
+  --popover-foreground: #2e2925;
+  --primary: #d4546d;
+  --primary-foreground: #fffdf7;
+  --secondary: #f1eee6;
+  --secondary-foreground: #2e2925;
+  --muted: #f1eee6;
+  --muted-foreground: #847a72;
+  --accent: #f1eee6;
+  --accent-foreground: #2e2925;
+  --destructive: #c0392b;
+  --border: #e4ded2;
+  --input: #e4ded2;
+  --ring: #d4546d;
+  --radius: 0.75rem;
+
+  --paper: #fffdf7;
+  --paper-line: #dbe4ec;
+  --paper-margin: #efb9c3;
+  --tape: rgb(244 162 180 / 0.55);
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    background-image: radial-gradient(rgb(46 41 37 / 0.07) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+@layer utilities {
+  .photo-print {
+    box-shadow: 0 1px 2px #2e29251a, 0 8px 20px -8px #2e29254d;
+  }
+  .photo-wall-grid > :nth-child(odd) { transform: rotate(-3deg); }
+  .photo-wall-grid > :nth-child(even) { transform: translateY(18px) rotate(3deg); }
+  .photo-perspective { perspective: 1000px; }
+  .photo-3d {
+    --photo-rest-rx: 4deg;
+    --photo-rest-ry: -7deg;
+    transform: rotateX(var(--photo-rx, var(--photo-rest-rx))) rotateY(var(--photo-ry, var(--photo-rest-ry))) translateZ(12px);
+    transform-style: preserve-3d;
+    border-right: 4px solid #d4cbbd;
+    border-bottom: 5px solid #ddd4c8;
+    box-shadow: 8px 24px 35px #0006, 0 2px 3px #0003;
+    transition: transform 400ms ease, box-shadow 400ms ease;
+  }
+  .photo-3d[data-turned='true'] { --photo-rest-rx: -3deg; --photo-rest-ry: 8deg; }
+  .paper-lined {
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(90deg, transparent 2.25rem, var(--paper-margin) 2.25rem, var(--paper-margin) calc(2.25rem + 1px), transparent calc(2.25rem + 1px)),
+      repeating-linear-gradient(to bottom, transparent 0, transparent calc(2.25rem - 1px), var(--paper-line) calc(2.25rem - 1px), var(--paper-line) 2.25rem);
+    background-attachment: local;
+  }
+
+  /* Perforated postage-stamp edge: 4px holes every 12px, interior kept solid. */
+  .stamp-edge {
+    --stamp-mask:
+      linear-gradient(#000 0 0) center / calc(100% - 10px) calc(100% - 10px) no-repeat,
+      radial-gradient(circle 4px, #0000 97%, #000) -6px -6px / 12px 12px repeat;
+    -webkit-mask: var(--stamp-mask);
+    mask: var(--stamp-mask);
+  }
+
+  .stamp-shadow {
+    filter: drop-shadow(0 1px 1px rgb(46 41 37 / 0.18)) drop-shadow(0 6px 10px rgb(46 41 37 / 0.18));
+  }
+
+  .stamp-shadow-lifted {
+    filter: drop-shadow(0 2px 2px rgb(46 41 37 / 0.2)) drop-shadow(0 16px 22px rgb(46 41 37 / 0.3));
+  }
+
+  .caret-blink {
+    animation: caret-blink 1.05s steps(1) infinite;
+  }
+
+  .paper-shadow {
+    box-shadow:
+      0 1px 0 rgb(46 41 37 / 0.04),
+      0 12px 30px -12px rgb(46 41 37 / 0.25);
+  }
+
+  .paper-grain {
+    position: relative;
+  }
+  .paper-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0.18 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-3d, .photo-wall-grid > button { transform: none !important; transition: none !important; }
+}

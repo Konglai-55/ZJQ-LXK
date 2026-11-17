@@ -1,0 +1,46 @@
+name: Build Linux release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:data && pnpm check:photos
+      - run: pnpm build --webpack
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NODE_OPTIONS: --max-old-space-size=1536
+      - name: Package standalone release
+        run: |
+          cp -R public .next/standalone/public
+          cp -R .next/static .next/standalone/.next/static
+          printf '%s\n' "$GITHUB_SHA" > .next/standalone/COMMIT_SHA
+          tar -czf zjq-lxk-linux.tar.gz -C .next/standalone .
+          sha256sum zjq-lxk-linux.tar.gz > zjq-lxk-linux.tar.gz.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zjq-lxk-linux
+          path: |
+            zjq-lxk-linux.tar.gz
+            zjq-lxk-linux.tar.gz.sha256
+          retention-days: 7
+      - name: Publish verified Linux artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "linux-$GITHUB_SHA" zjq-lxk-linux.tar.gz zjq-lxk-linux.tar.gz.sha256 --target "$GITHUB_SHA" --title "Linux release ${GITHUB_SHA:0:7}" --notes "Standalone Linux artifact for the exact source commit. Runtime secrets are supplied by the host."
